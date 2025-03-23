@@ -24,6 +24,8 @@ interface GlobalContextProps {
     jobs: Job[];
     fetchJobs: () => void;
     loading: boolean;
+    savedJobs: string[]; 
+    toggleSaveJob: (jobId: string) => void;
 }
 
 const GlobalContext = createContext<GlobalContextProps | undefined>(undefined);
@@ -31,13 +33,20 @@ const GlobalContext = createContext<GlobalContextProps | undefined>(undefined);
 export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [savedJobs, setSavedJobs] = useState<string[]>([]); 
+
+  const toggleSaveJob = (jobId: string) => {
+    setSavedJobs((prev) =>
+      prev.includes(jobId) ? prev.filter((id) => id !== jobId) : [...prev, jobId]
+    );
+  };
   
   const fetchJobs = async () => {
     try {
       const response = await fetch('https://empllo.com/api/v1');
       const data = await response.json();
       console.log("Fetched data:", data);
-      // Check if data is an array or if the jobs are in data.jobs
+
       const jobsArray = Array.isArray(data) ? data : data.jobs;
       if (!jobsArray) {
         throw new Error("No jobs array found in the response");
@@ -73,7 +82,7 @@ export const GlobalProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <GlobalContext.Provider value={{ jobs, fetchJobs, loading }}>
+    <GlobalContext.Provider value={{ jobs, fetchJobs, loading, savedJobs, toggleSaveJob }}>
       {children}
     </GlobalContext.Provider>
   );

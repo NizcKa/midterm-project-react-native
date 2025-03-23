@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { View, FlatList, Text, StyleSheet, Modal, Pressable, ScrollView, ActivityIndicator, RefreshControl, useWindowDimensions } from 'react-native';
+import { View, FlatList, Text, StyleSheet, Modal, Pressable, ScrollView, ActivityIndicator, RefreshControl, TextInput, TouchableOpacity } from 'react-native';
 import { useGlobalContext } from '../context/globalContext';
 import { useNavigation } from '@react-navigation/native';
 
 const JobFinderScreen = () => {
-  const { jobs, loading, fetchJobs } = useGlobalContext();
+  const { jobs, loading, fetchJobs, savedJobs, toggleSaveJob } = useGlobalContext();
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const openModal = (job) => {
     setSelectedJob(job);
@@ -18,6 +19,14 @@ const JobFinderScreen = () => {
     setModalVisible(false);
     setSelectedJob(null);
   };
+
+  const filteredJobs = jobs.filter((job) => {
+    const lowerCaseSearch = searchTerm.toLowerCase();
+    return (
+      job.title.toLowerCase().includes(lowerCaseSearch) ||  // Search via title
+      job.tags.some((tag) => tag.toLowerCase().includes(lowerCaseSearch))  // Search via tags
+    );
+  });
 
   if (loading && jobs.length === 0) {
     return (
@@ -30,13 +39,21 @@ const JobFinderScreen = () => {
 
   return (
     <View style={[styles.container]}>
+
       <Text style={[styles.pageTitle]}>Home Page</Text>
       <Text style={[styles.pageSubText]}>
-        Here, you may find your desired jobs.
+        Available Jobs
       </Text>
+
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Search Job"
+        value={searchTerm}
+        onChangeText={setSearchTerm} 
+      />
       
       <FlatList
-        data={jobs}
+        data={filteredJobs}
         keyExtractor={(item) => item.id}
         refreshControl={
           <RefreshControl
@@ -44,48 +61,44 @@ const JobFinderScreen = () => {
             onRefresh={fetchJobs}
           />
         }
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => openModal(item)}
-            style={({ pressed }) => [
-              {
-                transform: [{ scale: pressed ? 0.97 : 1 }],
-                opacity: pressed ? 0.9 : 1,
-              },
-              styles.card
-            ]}
-          >
-            <Text style={[styles.jobTitle]}>{item.title}</Text>
-            <Text style={[styles.jobCompany]}>{item.companyName}</Text>
-            <Text style={[styles.jobSalary]}>
-              Salary: {item.minSalary} - {item.maxSalary}
-            </Text>
-          </Pressable>
-        )}
+        renderItem={({ item }) => {
+          return (
+            <View style={styles.jobContainer}>
+
+              <Pressable
+                onPress={() => openModal(item)}
+                style={({ pressed }) => [
+                  {
+                    transform: [{ scale: pressed ? 0.97 : 1 }],
+                    opacity: pressed ? 0.9 : 1,
+                  },
+                  styles.card
+                ]}
+              >
+                <Text style={[styles.jobTitle]}>{item.title}</Text>
+                <Text style={[styles.jobCompany]}>{item.companyName}</Text>
+                <Text style={[styles.jobSalary]}>
+                  Salary: {item.minSalary} - {item.maxSalary}
+                </Text>
+              </Pressable>
+
+              <TouchableOpacity
+                style={[styles.saveButton, savedJobs.includes(item.id) ? styles.removeButton : styles.addButton]}
+                onPress={() => toggleSaveJob(item.id)}
+              >
+                <Text style={styles.buttonText}>
+                  {savedJobs.includes(item.id) ? "Remove Job" : "Save Job"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          );
+        }}
         ListEmptyComponent={
           <Text>No jobs available.</Text>
         }
         contentContainerStyle={styles.listContent}
       />
-      
 
-      {/* Sticky Button to Navigate to SavedJobsScreen */}
-      <Pressable
-        onPress={() => navigation.navigate('SavedJobs')}
-        style={({ pressed }) => [
-          styles.savedJobsButton,
-          { 
-            transform: [{ scale: pressed ? 0.97 : 1 }],
-            opacity: pressed ? 0.9 : 1,
-          },
-        ]}
-      >
-        <Text style={[styles.savedJobsButtonText]}>
-          View Saved Jobs
-        </Text>
-      </Pressable>
-
-      {/* Modal for Job Details */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -151,6 +164,14 @@ const JobFinderScreen = () => {
           </View>
         </View>
       </Modal>
+      <View style = { styles.buttonContainer }>
+        <TouchableOpacity
+          style = { styles.savedJobsButton }
+          onPress = { () => navigation.navigate("SavedJobs") }// Passes the cart onto the cart screen
+        >
+          <Text style = { styles.buttonText }>Saved Jobs</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -158,6 +179,17 @@ const JobFinderScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  jobContainer: {
+    marginBottom: 12, // Space between job items
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2, // Shadow for Android
   },
   pageTitle: {
     fontSize: 24,
@@ -173,7 +205,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingTop: 16,
     paddingHorizontal: 16,
-    paddingBottom: 100, // Ensure enough space so list items aren't hidden behind the button
+    paddingBottom: 100, 
   },
   card: {
     padding: 16,
@@ -190,6 +222,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 4,
   },
+  savedJobsButton: {
+    backgroundColor: "#007BFF", // Bright blue color
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 2,
+  },
+  buttonContainer: {
+    position: 'absolute', 
+    bottom: 20, 
+    left: 16, 
+    right: 16, 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    paddingVertical: 10, 
+    borderRadius: 10,
+  },
   jobCompany: {
     fontSize: 16,
     marginBottom: 4,
@@ -205,16 +254,6 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     marginTop: 10,
-  },
-  savedJobsButton: {
-    position: 'absolute',
-    bottom: 10,
-    left: 16,
-    right: 16,
-    paddingVertical: 10,
-    borderRadius: 5,
-    alignItems: 'center',
-    zIndex: 1,
   },
   savedJobsButtonText: {
     fontSize: 16,
@@ -253,6 +292,32 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  searchInput: {
+    height: 40,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+
+  saveButton: {
+    marginTop: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  addButton: {
+    backgroundColor: '#007bff', // Blue when saving
+  },
+  removeButton: {
+    backgroundColor: '#dc3545', // Red when removing
+  },
+  buttonText: {
+    color: '#fff',
     fontWeight: 'bold',
   },
 });

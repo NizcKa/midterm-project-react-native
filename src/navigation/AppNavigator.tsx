@@ -12,9 +12,9 @@ const AppNavigator = () => {
     return (
         <NavigationContainer>
             <Stack.Navigator>
-                <Stack.Screen name="Job Finder" component={JobFinderScreen} />
-                <Stack.Screen name="Saved Jobs" component={SavedJobsScreen} />
-                <Stack.Screen name="Application Form" component={ApplicationFormScreen} />
+                <Stack.Screen name="JobFinder" component={JobFinderScreen} />
+                <Stack.Screen name="SavedJobs" component={SavedJobsScreen} />
+                <Stack.Screen name="ApplicationForm" component={ApplicationFormScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );
