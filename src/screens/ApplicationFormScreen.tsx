@@ -1,87 +1,89 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
-import axios from 'axios';
-import uuid from 'react-native-uuid';
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
-// Define TypeScript interface for API response
-interface JobPost {
-  id: string;
-  jobTitle: string;
-  companyName: string;
-  salary: number;
-  description: string;
-}
+const ApplicationFormScreen = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const savedJob = route.params?.savedJob; // Get passed job data
 
-const API_URL = 'https://empllo.com/api/v1';
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  const [reason, setReason] = useState("");
 
-const ApplicationForm: React.FC = () => {
-  const [data, setData] = useState<JobPost[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [refreshing, setRefreshing] = useState<boolean>(false);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      const response = await axios.get(API_URL);
-
-      console.log("API Response:", response.data); 
-
-      const filteredData = response.data.map((job: any) => ({
-        id: uuid.v4(), 
-        title: job.title, 
-        companyName: job.companyName, 
-        salary: job.minSalary,
-        description: job.description
-      }));
-
-      setData(filteredData);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
+  const handleSubmit = () => {
+    if (!name || !email || !contactNumber || !reason) {
+      Alert.alert("Error", "All fields are required!");
+      return;
     }
+
+    Alert.alert(
+      "Application Submitted",
+      `Your application for ${savedJob?.title} at ${savedJob?.companyName} has been submitted!`,
+      [
+        {
+          text: "Okay",
+          onPress: () => navigation.goBack(), // Return to Job Finder Screen
+        },
+      ]
+    );
+
+    // Clear form fields
+    setName("");
+    setEmail("");
+    setContactNumber("");
+    setReason("");
   };
-
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchData();
-    setRefreshing(false);
-  }, []);
-
-  if (loading) {
-    return <ActivityIndicator size="large" color="blue" style={styles.loader} />;
-  }
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={data}
-        keyExtractor={(item) => item.id.toString()}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Text style={styles.title}>{item.jobTitle}</Text>
-            <Text>{item.companyName}</Text>
-            <Text>{item.salary}</Text>
-            <Text>{item.description}</Text>
-          </View>
-        )}
+      <Text style={styles.title}>Apply for {savedJob?.title}</Text>
+      <Text style={styles.subtitle}>Company: {savedJob?.companyName}</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Your Name"
+        value={name}
+        onChangeText={setName}
       />
+      <TextInput
+        style={styles.input}
+        placeholder="Your Email"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Contact Number"
+        value={contactNumber}
+        onChangeText={setContactNumber}
+        keyboardType="phone-pad"
+      />
+      <TextInput
+        style={styles.textArea}
+        placeholder="Why should we hire you?"
+        value={reason}
+        onChangeText={setReason}
+        multiline
+      />
+
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+        <Text style={styles.buttonText}>Submit Application</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  item: { padding: 10, borderBottomWidth: 1, borderBottomColor: '#ccc' },
-  title: { fontSize: 16, fontWeight: 'bold' },
+  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
+  title: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
+  subtitle: { fontSize: 16, marginBottom: 20, color: "gray" },
+  input: { borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5, marginBottom: 10 },
+  textArea: { borderWidth: 1, borderColor: "#ccc", padding: 10, borderRadius: 5, height: 100, marginBottom: 10 },
+  submitButton: { backgroundColor: "blue", padding: 15, borderRadius: 5, alignItems: "center" },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
 });
 
-export default ApplicationForm;
+export default ApplicationFormScreen;

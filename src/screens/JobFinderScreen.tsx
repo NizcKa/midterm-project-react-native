@@ -90,6 +90,16 @@ const JobFinderScreen = () => {
                   {savedJobs.includes(item.id) ? "Remove Job" : "Save Job"}
                 </Text>
               </TouchableOpacity>
+
+              {savedJobs.includes(item.id) && (
+                <TouchableOpacity
+                  style={styles.applyButton}
+                  onPress={() => navigation.navigate("ApplicationForm", { savedJob: item })}
+                >
+                  <Text style={styles.buttonText}>Apply</Text>
+                </TouchableOpacity>
+              )}
+
             </View>
           );
         }}
@@ -164,14 +174,16 @@ const JobFinderScreen = () => {
           </View>
         </View>
       </Modal>
+
       <View style = { styles.buttonContainer }>
         <TouchableOpacity
           style = { styles.savedJobsButton }
-          onPress = { () => navigation.navigate("SavedJobs") }// Passes the cart onto the cart screen
+          onPress = { () => navigation.navigate("SavedJobs") }
         >
           <Text style = { styles.buttonText }>Saved Jobs</Text>
         </TouchableOpacity>
       </View>
+
     </View>
   );
 };
@@ -319,6 +331,13 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  applyButton: {
+    backgroundColor: "#007bff",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: "center",
   },
 });
 

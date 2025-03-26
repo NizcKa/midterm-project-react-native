@@ -3,7 +3,7 @@ import { View, FlatList, Text, StyleSheet, ActivityIndicator, RefreshControl, To
 import { useGlobalContext } from '../context/globalContext';
 import { useNavigation } from '@react-navigation/native';
 
-const SavedJobsScreens = () => {
+const SavedJobsScreen = () => {
   const { jobs, loading, fetchJobs, savedJobs, toggleSaveJob } = useGlobalContext();
   const navigation = useNavigation();
 
@@ -51,6 +51,14 @@ const SavedJobsScreens = () => {
                 {savedJobs.includes(job.id) ? "Remove Job" : "Save Job"}
               </Text>
             </TouchableOpacity>
+
+            <TouchableOpacity //FIX THIS
+              style={styles.applyButton}
+              onPress={() => navigation.navigate("ApplicationForm", { savedJob: job })}
+            >
+              <Text style={styles.buttonText}>Apply</Text>
+            </TouchableOpacity>
+
           </View>
           );
       }}
@@ -59,6 +67,16 @@ const SavedJobsScreens = () => {
         }
         contentContainerStyle={styles.listContent}
       />
+
+      <View style = { styles.buttonContainer }>
+        <TouchableOpacity
+          style = { styles.savedJobsButton }
+          onPress = { () => navigation.navigate("JobFinder") }
+        >
+          <Text style = { styles.buttonText }>Job Finder</Text>
+        </TouchableOpacity>
+      </View>
+
     </View>
   )
   
@@ -110,6 +128,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 4,
   },
+  savedJobsButton: {
+    backgroundColor: "#007BFF", // Bright blue color
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 2,
+  },
+  buttonContainer: {
+    position: 'absolute', 
+    bottom: 20, 
+    left: 16, 
+    right: 16, 
+    alignItems: 'center', 
+    justifyContent: 'center',
+    paddingVertical: 10, 
+    borderRadius: 10,
+  },
   jobCompany: {
     fontSize: 16,
     marginBottom: 4,
@@ -125,16 +160,6 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     marginTop: 10,
-  },
-  savedJobsButton: {
-    position: 'absolute',
-    bottom: 10,
-    left: 16,
-    right: 16,
-    paddingVertical: 10,
-    borderRadius: 5,
-    alignItems: 'center',
-    zIndex: 1,
   },
   savedJobsButtonText: {
     fontSize: 16,
@@ -201,6 +226,13 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
+  applyButton: {
+    backgroundColor: "#007bff",
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: "center",
+  },
 });
 
-export default SavedJobsScreens;
+export default SavedJobsScreen;
