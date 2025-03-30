@@ -106,10 +106,14 @@ const JobFinderScreen = () => {
             </Pressable>
 
             <TouchableOpacity
-              style={[jobScreenStyles.saveButton, savedJobs.includes(item.id) ? jobScreenStyles.removeButton : jobScreenStyles.addButton]}
+              style={[jobScreenStyles.saveButton, 
+                savedJobs.includes(item.id) ? jobScreenStyles.savedButton : jobScreenStyles.addButton,
+                savedJobs.includes(item.id) && { opacity: 0.6 } 
+              ]}
               onPress={() => toggleSaveJob(item.id)}
+              disabled={savedJobs.includes(item.id)}
             >
-              <Text style={jobScreenStyles.buttonText}>{savedJobs.includes(item.id) ? "Remove Job" : "Save Job"}</Text>
+              <Text style={jobScreenStyles.buttonText}>{savedJobs.includes(item.id) ? "Saved" : "Save Job"}</Text>
             </TouchableOpacity>
 
             {savedJobs.includes(item.id) && (

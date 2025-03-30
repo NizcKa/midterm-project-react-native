@@ -130,5 +130,8 @@ export const jobScreenStyles = StyleSheet.create({
         color: "gray",
         paddingTop: 10,
         marginBottom: 10,
-      },
+    },
+    savedButton: {
+        backgroundColor: "#2ecc71"
+    }
 });
